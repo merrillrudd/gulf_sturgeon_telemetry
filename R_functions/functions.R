@@ -1,0 +1,6 @@
+source(file.path(init_dir, "R_functions", "compile_transmitters.R"))
+source(file.path(init_dir, "R_functions", "compile_detections.R"))
+source(file.path(init_dir, "R_functions", "filter_detections.R"))
+source(file.path(init_dir, "R_functions", "find_GS.R"))
+source(file.path(init_dir, "R_functions", "check_movement.R"))
+source(file.path(init_dir, "R_functions", "setup_capture_histories.R"))
