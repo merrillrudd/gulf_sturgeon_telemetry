@@ -1,12 +1,12 @@
 make_ch_MARK <- function(ch, tags, focal){
 
 	tagloc_double <- sapply(1:nrow(ch), function(x) as.character(tags$River[which(tags$Transmitter==rownames(ch)[x])]))
-	tagloc_single <- rep(NA, length(tagloc))
+	tagloc_single <- rep(NA, length(tagloc_double))
 	
 	river_single <- c("S", "K", "A", "C", "Y", "B", "E", "P", "L")
 	river_double <- c("SR", "OR", "AR", "CR", "YR", "BR", "ER", "PR", "PE")
 
-	tagloc_single <- sapply(1:length(tagloc), function(x) river_single[which(river_double==tagloc[x])])
+	tagloc_single <- sapply(1:length(tagloc_double), function(x) river_single[which(river_double==tagloc_double[x])])
 	tagloc_single[which(tagloc_single!=focal)] <- "R"
 
 	wgroup <- cbind(ch, tagloc_single)
