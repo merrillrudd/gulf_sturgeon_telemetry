@@ -26,7 +26,7 @@ caphist <- setup_capture_histories(data=GSdets, tags=tags)
 caphist2 <- months2seasons(ch=caphist, num_seasons=2) ## also option for 4 seasons per year
 
 ######## ANALYSIS BY RIVER
-    ## convert all rivers to 3 states (focal, river, marine) - list of capture history matrix for each of nine rivers
+    ## list of capture history matrix for each of nine rivers
     river_single <- c("S", "K", "A", "C", "Y", "B", "E", "P", "L")
     group_single <- c("A", "B", "C", "D")    
 
@@ -34,15 +34,20 @@ caphist2 <- months2seasons(ch=caphist, num_seasons=2) ## also option for 4 seaso
     names(ch_focal) <- river_single    
 
     ## create Rmark-ready capture histories
-    ch_rmark <- lapply(1:length(ch_focal), function(x) make_ch_MARK(ch=ch_focal[[x]], focal=names(ch_focal[x]), tags=tags))
-    names(ch_rmark) <- names(ch_focal)
+    ch_riv_rmark <- lapply(1:length(ch_focal), function(x) make_ch_MARK(ch=ch_focal[[x]], spatial_collapse="river", tags=tags))
+    names(ch_riv_rmark) <- names(ch_focal)
+
+    ## run Rmark
 
 
 ####### ANALYSIS BY REGION
+    ## convert all rivers to 4 states (east=A, choctaw=B, escambia bay=C, west=D)
     ch_group <- convert_states(ch=caphist2, spatial_collapse="region")
 
+    ## create Rmark-ready capture histories - with group designating tagging location
+    ch_group_rmark <- make_ch_MARK(ch=ch_group, spatial_collapse="region", tags=tags)
 
-## run Rmark
+
 
 
 ## check assumptions
