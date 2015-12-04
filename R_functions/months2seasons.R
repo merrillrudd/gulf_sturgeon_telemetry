@@ -51,14 +51,16 @@ months2seasons <- function(ch, num_seasons){
 			riv_out <- riv[length(riv)]
 		}
 		if(length(riv)==0) riv_out <- "0"
-		if(length(riv)==1) riv_out <- riv
+		if(length(unique(riv))==1) riv_out <- unique(riv)
 		return(riv_out)
 	}
 
+	# new_ch <- sapply(1:length(season_vec), function(x) sapply(1:nrow(ch), function(y) last_det_fun(ch_indiv=ch[y,], date=season_vec[x], num_seasons=num_seasons)))
+
 	for(i in 1:length(season_vec)){
-		ch_season[,i] <- sapply(1:nrow(ch), 
-			function(x) last_det_fun(ch_indiv=ch[x,], date=colnames(ch_season)[i], 
-				num_seasons=num_seasons))
+		for(j in 1:nrow(ch)){
+			ch_season[j,i] <- last_det_fun(ch_indiv=ch[j,], date=season_vec[i], num_seasons=num_seasons)
+		}
 	}
 
 	return(ch_season)
