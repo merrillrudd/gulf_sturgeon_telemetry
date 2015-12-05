@@ -1,14 +1,8 @@
-run_RMark <- function(ch_df, spatial_collapse, focal=NULL, 
-	year_vec, season_vec){
+run_RMark <- function(ch, freq, spatial_collapse, focal=NULL, year_vec, season_vec){
 
 	require(RMark)
 
-	## get capture history in the right format
-	ch <- as.character(ch_df$ch)
-	freq <- as.numeric(ch_df$freq)
-	# natal <- as.factor(ch_df$group)
-
-	dets <- data.frame(ch, freq, stringsAsFactors=FALSE)
+	dets <- data.frame("ch"=as.character(ch), "freq"=as.numeric(freq), stringsAsFactors=FALSE)
 	# dets <- data.frame(dets, natal)
 
 	## process for RMark
@@ -24,28 +18,28 @@ run_RMark <- function(ch_df, spatial_collapse, focal=NULL,
 	}
 
 	## setup design matrix
-	ddl <- make.design.data(process, 
+	det_ddl <- make.design.data(process, 
 		parameters=list(Psi=list(pim.type="time", subtract.stratum=subtract)))
 
 	########## Formulas
 
 	## Fix some movements to probability zero - cannot move from marine to marine, or from river to river state
-	  delete_indices <- c(as.numeric(row.names(ddl$Psi[ddl$Psi$stratum!="M" & ddl$Psi$tostratum!="M",])),
-		as.numeric(row.names(ddl$Psi[ddl$Psi$stratum=="M" & ddl$Psi$tostratum=="M",])))
+	  delete_indices <- c(as.numeric(row.names(det_ddl$Psi[det_ddl$Psi$stratum!="M" & det_ddl$Psi$tostratum!="M",])),
+		as.numeric(row.names(det_ddl$Psi[det_ddl$Psi$stratum=="M" & det_ddl$Psi$tostratum=="M",])))
 
 	  delete_values <- rep(0, length(delete_indices))
 
 	## dummy variables for season and year
-	  time_vec <- as.numeric(unique(ddl$S$time))
+	  time_vec <- as.numeric(unique(det_ddl$S$time))
       for(tt in 1:length(time_vec)){
-    	ddl$S$year[ddl$S$time==time_vec[tt]] <- year_vec[tt+1]
+    	det_ddl$S$year[det_ddl$S$time==time_vec[tt]] <- year_vec[tt+1]
       }
 
-      ddl$p$season <- 0
-   	  for(ss in 1:nrow(ddl$p)){
-   	  	index <- as.numeric(ddl$p$time[ss])
-   	  	if(grepl("Sp", season_vec[index])) ddl$p$season[ss] <- 1
-   	  	if(grepl("Fa", season_vec[index])) ddl$p$season[ss] <- 2
+      det_ddl$p$season <- 0
+   	  for(ss in 1:nrow(det_ddl$p)){
+   	  	index <- as.numeric(det_ddl$p$time[ss])
+   	  	if(grepl("Sp", season_vec[index])) det_ddl$p$season[ss] <- 1
+   	  	if(grepl("Fa", season_vec[index])) det_ddl$p$season[ss] <- 2
    	  }
 
    	  	## movement
@@ -67,7 +61,7 @@ run_RMark <- function(ch_df, spatial_collapse, focal=NULL,
 
 	run_model <- function(model){
 
-		res <- mark(process, ddl, model.parameters=list(S=get(model$S), p=get(model$p), Psi=get(model$Psi)), threads=-1)
+		res <- mark(process, det_ddl, model.parameters=list(S=get(model$S), p=get(model$p), Psi=get(model$Psi)), threads=-1)
 		real <- unique(res$results$real)
 		AICc <- res$results$AICc
 		npar <- res$results$npar
