@@ -122,7 +122,13 @@ season_vec <- unlist(strsplit(colnames(caphist2), "/"))[seq(2,ncol(caphist2)*2, 
     	saveRDS(output, file.path(riv_res_dir, paste0(focal, "_output.rds")))
     }
 
-    C_out <- readRDS(file.path(riv_res_dir, "C_output.rds"))
+    ### compare models
+    AICc_list <- lapply(1:length(river_single), function(x) get_AICc(output_list=readRDS(file.path(riv_res_dir, paste0(river_single[x], "_output.rds")))))
+    names(AICc_list) <- river_single
+
+    ### all results
+    results <- compile_results(riv_res_dir)
+
 
 ####### ANALYSIS BY REGION
     ## convert all rivers to 4 states (east=A, choctaw=B, escambia bay=C, west=D)
