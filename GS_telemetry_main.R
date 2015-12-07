@@ -3,6 +3,9 @@ library(RMark)
 init_dir <- "C:\\Git_Projects\\gulf_sturgeon_telemetry"
 data_dir <- file.path(init_dir, "Data")
 fun_dir <- file.path(init_dir, "R_functions")
+res_dir <- file.path(init_dir, "results")
+    dir.create(res_dir, showWarnings=FALSE)
+
 
 setwd(init_dir)
 source(file.path(fun_dir, "functions.R"))
@@ -11,19 +14,29 @@ source(file.path(fun_dir, "functions.R"))
 tags <- compile_transmitters(data_dir)
 
 ## data frame of detections from each receiver
-detections <- compile_detections(data_dir)
+# detections <- compile_detections(data_dir)
+# saveRDS(detections, file.path(res_dir, "detections.rds"))
+detections <- readRDS(file.path(res_dir, "detections.rds"))
 
 ## at least 3 detections in 1 month per transmitter/receiver combination
-filtered <- filter_detections(detections)
+# filtered <- filter_detections(detections)
+# saveRDS(filtered, file.path(res_dir, "filtered_detections.rds"))
+filtered <- readRDS(file.path(res_dir, "filtered_detections.rds"))
 
 ## find detections that were Gulf sturgeon based on transmitters deployed
-GSdets <- find_GS(detections=filtered, transmitters=tags)
+# GSdets <- find_GS(detections=filtered, transmitters=tags)
+# saveRDS(GSdets, file.path(res_dir, "filtered_GSdets.rds"))
+GSdets <- readRDS(file.path(res_dir, "filtered_GSdets.rds"))
 
 ## setup capture histories
-caphist <- setup_capture_histories(data=GSdets, tags=tags)
+# caphist <- setup_capture_histories(data=GSdets, tags=tags)
+# saveRDS(caphist, file.path(res_dir, "capture_histories_4seasons.rds"))
+caphist <- readRDS(file.path(res_dir, "capture_histories_4seasons.rds"))
 
 ## convert monthly to 2-season time scale
-caphist2 <- months2seasons(ch=caphist, num_seasons=2) ## also option for 4 seasons per year
+# caphist2 <- months2seasons(ch=caphist, num_seasons=2) ## also option for 4 seasons per year
+# saveRDS(caphist2, file.path(res_dir, "capture_histories_2seasons.rds"))
+caphist2 <- readRDS(file.path(res_dir, "capture_histories_2seasons.rds"))
 
 ## years in capture history
 year_vec <- as.numeric(unlist(strsplit(unlist(strsplit(colnames(caphist2), "/"))[seq(1,ncol(caphist2)*2, by=2)], "r"))[seq(2,ncol(caphist2)*2, by=2)])
@@ -40,21 +53,76 @@ season_vec <- unlist(strsplit(colnames(caphist2), "/"))[seq(2,ncol(caphist2)*2, 
     ch_riv_rmark <- lapply(1:length(ch_focal), function(x) make_ch_MARK(ch=ch_focal[[x]], spatial_collapse="river", tags=tags))
     names(ch_riv_rmark) <- names(ch_focal)
 
-    ## run Rmark
-    start <- Sys.time()
-    output <- lapply(1:length(ch_riv_rmark), function(x) run_RMark(ch_df=ch_riv_rmark[[x]],
-    	spatial_collapse="river", focal=names(ch_riv_rmark)[x], 
-    	year_vec=year_vec, season_vec=season_vec))
-    names(output) <- names(ch_riv_rmark)
-    end <- Sys.time() - start
+    riv_res_dir <- file.path(res_dir, "river_collapse")
+    dir.create(riv_res_dir, showWarnings=FALSE)
 
-    res_dir <- file.path(init_dir, "results")
-    dir.create(res_dir, showWarnings=FALSE)
+    ## run Rmark -- problems running MARK within environment of function
+    for(rr in 1:length(ch_riv_rmark)){
 
-    saveRDS(output, file.path(res_dir, "output_by_river.rds"))
-    for(rr in 1:length(river_single)){
-    	saveRDS(output[[rr]], file.path(res_dir, paste0(river_single[rr], "_output.rds")))
+        df <- ch_riv_rmark[[rr]]
+        focal <- names(ch_riv_rmark[rr])
+        dets <- data.frame("ch"=df$ch, "freq"=df$freq, stringsAsFactors=FALSE)
+    	
+    	## process for RMark
+    	process <- process.data(dets, model="Multistrata")
+    	states <- process$strata.labels
+    	subtract <- FALSE
+    	subtract <- states
+    	for(ss in 1:length(states)){
+    		if(states[ss]!="M") subtract[ss] <- "M"
+    		if(states[ss]=="M") subtract[ss] <- focal
+    	}    
+    
+
+    	## setup design matrix
+    	det_ddl <- make.design.data(process, 
+    		parameters=list(Psi=list(pim.type="time", subtract.stratum=subtract)))    
+
+    	########## Formulas
+    	## dummy variables for season and year
+    	  time_vec <- as.numeric(unique(det_ddl$S$time))
+          for(tt in 1:length(time_vec)){
+        	det_ddl$S$year[det_ddl$S$time==time_vec[tt]] <- year_vec[tt+1]
+          }    
+
+          det_ddl$p$season <- 0
+       	  for(ss in 1:nrow(det_ddl$p)){
+       	  	index <- as.numeric(det_ddl$p$time[ss])
+       	  	if(grepl("Sp", season_vec[index])) det_ddl$p$season[ss] <- 1
+       	  	if(grepl("Fa", season_vec[index])) det_ddl$p$season[ss] <- 2
+       	  }    
+
+       	## movement
+       	delete_indices <- c(which(det_ddl$Psi$stratum=="M" & det_ddl$Psi$tostratum=="M"), 
+       		which(det_ddl$Psi$stratum!="M" & det_ddl$Psi$tostratum!="M"))
+       	delete_vals <- rep(0, length(delete_indices))
+       		Psi.stratum <- list(formula=~-1+stratum:tostratum, fixed=list(index=delete_indices, value=delete_vals))    
+
+    	## survival
+    		S.stratum <-  list(formula=~-1+stratum, link="sin")
+    		S.constant <- list(formula=~1)
+    		S.year <- list(formula=~year)
+    		S.stratum_year <- list(formula=~-1+stratum*year)    
+
+    	## detection
+    		p.constant <- list(formula=~1)
+    		p.stratum <- list(formula=~-1+stratum)
+    		p.season <- list(formula=~season)
+    		p.stratum_season <- list(formula~-1+stratum*season)    
+
+    	formula_list <- create.model.list("Multistrata")    
+
+    	output <- NULL
+    	for(i in 1:nrow(formula_list)){
+    		output[[i]] <- run_model(formula_list[i,])
+    		cleanup(ask=FALSE)
+    	}
+    	names(output) <- apply(formula_list, 1, paste, collapse="_")    
+
+    	saveRDS(output, file.path(riv_res_dir, paste0(focal, "_output.rds")))
     }
+
+    C_out <- readRDS(file.path(riv_res_dir, "C_output.rds"))
 
 ####### ANALYSIS BY REGION
     ## convert all rivers to 4 states (east=A, choctaw=B, escambia bay=C, west=D)
