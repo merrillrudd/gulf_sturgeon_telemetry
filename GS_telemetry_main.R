@@ -19,6 +19,7 @@ source(file.path(fun_dir, "functions.R"))
 ##############################
 ## Synthesis of results
 ##############################
+### not done running with new data as of 12/14/2015
 
 # riv_res_dir <- file.path(res_dir, "river_collapse")
 # reg_res_dir <- file.path(res_dir, "region_collapse")
@@ -83,7 +84,7 @@ season_vec <- unlist(strsplit(colnames(caphist2), "/"))[seq(2,ncol(caphist2)*2, 
     dir.create(riv_res_dir, showWarnings=FALSE)
 
     ## un-comment to re-run
-    ## ran on 12/7/2015 at 3:10pm
+    ## ran on 12/14/2015 at 6:34pm
     # run Rmark -- problems running MARK within environment of function
     for(rr in 1:length(ch_riv_rmark)){
 
