@@ -1,5 +1,7 @@
 source(file.path(init_dir, "R_functions", "compile_transmitters.R"))
 source(file.path(init_dir, "R_functions", "compile_detections.R"))
+source(file.path(init_dir, "R_functions", "convert_year.R"))
+source(file.path(init_dir, "R_functions", "assign_riv.R"))
 source(file.path(init_dir, "R_functions", "filter_detections.R"))
 source(file.path(init_dir, "R_functions", "find_GS.R"))
 source(file.path(init_dir, "R_functions", "check_movement.R"))

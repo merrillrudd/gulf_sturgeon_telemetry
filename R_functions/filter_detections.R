@@ -41,7 +41,7 @@ dat_filtered <- NULL
         #only use receiver/transmitter combinations that have 3 or more detections
           output.sub=subset(output,subset=output[,2]>=3)
         # choose rows of dataframe that should be kept
-          filter <- date.sub[which(date.sub$Receiver.Transmitter %in% output.sub$rectrans),]
+          filter <- unique(date.sub[which(date.sub$Receiver.Transmitter %in% output.sub$rectrans),c("Month", "Day", "Year", "Receiver", "Transmitter", "River", "Receiver.Transmitter")])
 
         # add to total
         dat_filtered <- rbind.data.frame(dat_filtered, filter)

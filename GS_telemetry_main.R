@@ -1,7 +1,7 @@
 ##############################
-## Synthesis of results
+## Header
 ##############################
-
+## set directories
 rm(list=ls())
 init_dir <- "C:\\Git_Projects\\gulf_sturgeon_telemetry"
 data_dir <- file.path(init_dir, "Data")
@@ -9,33 +9,35 @@ fun_dir <- file.path(init_dir, "R_functions")
 res_dir <- file.path(init_dir, "results")
     dir.create(res_dir, showWarnings=FALSE)
 
-riv_res_dir <- file.path(res_dir, "river_collapse")
-reg_res_dir <- file.path(res_dir, "region_collapse")
-
-river_results <- readRDS(file.path(riv_res_dir, "results_compiled.rds"))
-region_results <- readRDS(file.path(reg_res_dir, "results_compiled.rds"))
-
-
-##############################
-## Run analysis by river
-##############################
-
-rm(list=ls())
+## load packages
 library(RMark)
-init_dir <- "C:\\Git_Projects\\gulf_sturgeon_telemetry"
-data_dir <- file.path(init_dir, "Data")
-fun_dir <- file.path(init_dir, "R_functions")
-res_dir <- file.path(init_dir, "results")
-    dir.create(res_dir, showWarnings=FALSE)
 
-riv_res_dir <- file.path(res_dir, "river_collapse")
-reg_res_dir <- file.path(res_dir, "region_collapse")
-
+## load functions
 setwd(init_dir)
 source(file.path(fun_dir, "functions.R"))
 
+##############################
+## Synthesis of results
+##############################
+
+# riv_res_dir <- file.path(res_dir, "river_collapse")
+# reg_res_dir <- file.path(res_dir, "region_collapse")
+
+# river_results <- readRDS(file.path(riv_res_dir, "results_compiled.rds"))
+# region_results <- readRDS(file.path(reg_res_dir, "results_compiled.rds"))
+
+##########################################
+## Run analysis by river, with NRDA tags
+##########################################
+
+riv_res_dir <- file.path(res_dir, "river_collapse")
+
 ## data frame of transmitter numbers deployed in each river by date
-tags <- compile_transmitters(data_dir)
+# tags_wNRDA <- compile_transmitters(data_dir, include_NRDA=TRUE)
+# tags_noNRDA <- compile_transmitters(data_dir, include_NRDA=FALSE)
+# saveRDS(tags_wNRDA, file.path(res_dir, "tags_withNRDA.rds"))
+# saveRDS(tags_noNRDA, file.path(res_dir, "tags_noNRDA.rds"))
+tags <- readRDS(file.path(res_dir, "tags_withNRDA.rds"))
 
 ## data frame of detections from each receiver
 # detections <- compile_detections(data_dir)
@@ -82,7 +84,7 @@ season_vec <- unlist(strsplit(colnames(caphist2), "/"))[seq(2,ncol(caphist2)*2, 
 
     ## un-comment to re-run
     ## ran on 12/7/2015 at 3:10pm
-    run Rmark -- problems running MARK within environment of function
+    # run Rmark -- problems running MARK within environment of function
     for(rr in 1:length(ch_riv_rmark)){
 
         df <- ch_riv_rmark[[rr]]
@@ -164,17 +166,7 @@ season_vec <- unlist(strsplit(colnames(caphist2), "/"))[seq(2,ncol(caphist2)*2, 
 ## Run analysis by region
 ##############################
 
-rm(list=ls())
-library(RMark)
-init_dir <- "C:\\Git_Projects\\gulf_sturgeon_telemetry"
-data_dir <- file.path(init_dir, "Data")
-fun_dir <- file.path(init_dir, "R_functions")
-res_dir <- file.path(init_dir, "results")
-    dir.create(res_dir, showWarnings=FALSE)
-
-
-setwd(init_dir)
-source(file.path(fun_dir, "functions.R"))
+reg_res_dir <- file.path(res_dir, "region_collapse")
 
 ## data frame of transmitter numbers deployed in each river by date
 tags <- compile_transmitters(data_dir)
