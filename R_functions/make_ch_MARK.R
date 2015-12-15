@@ -4,7 +4,7 @@ make_ch_MARK <- function(ch, tags, spatial_collapse){
 		reg_code <- c("A", "A", "A", "B", "C", "C", "C", "D", "D")
 		river_double <- c("SR", "OR", "AR", "CR", "YR", "BR", "ER", "PR", "PE")
 
-		tagloc_double <- sapply(1:nrow(ch), function(x) as.character(tags$River[which(tags$Transmitter==rownames(ch)[x])]))
+		tagloc_double <- sapply(1:nrow(ch), function(x) tags$River[which(tags$Transmitter==rownames(ch)[x])])
 		tagloc_region <- sapply(1:length(tagloc_double), function(x) reg_code[which(river_double==tagloc_double[x])])
 	
 		wgroup <- cbind(ch, tagloc_region)

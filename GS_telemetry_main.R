@@ -35,10 +35,10 @@ source(file.path(fun_dir, "functions.R"))
 riv_res_dir <- file.path(res_dir, "river_collapse")
 
 ## data frame of transmitter numbers deployed in each river by date
-# tags_wNRDA <- compile_transmitters(data_csv_dir, include_NRDA=TRUE)
-# tags_noNRDA <- compile_transmitters(data_csv_dir, include_NRDA=FALSE)
-# saveRDS(tags_wNRDA, file.path(data_dir, "tags_withNRDA.rds"))
-# saveRDS(tags_noNRDA, file.path(data_dir, "tags_noNRDA.rds"))
+tags_wNRDA <- unique(compile_transmitters(data_csv_dir, include_NRDA=TRUE))
+tags_noNRDA <- compile_transmitters(data_csv_dir, include_NRDA=FALSE)
+saveRDS(tags_wNRDA, file.path(data_dir, "tags_withNRDA.rds"))
+saveRDS(tags_noNRDA, file.path(data_dir, "tags_noNRDA.rds"))
 tags <- readRDS(file.path(data_dir, "tags_withNRDA.rds"))
 
 ## data frame of detections from each receiver
@@ -156,11 +156,9 @@ season_vec <- unlist(strsplit(colnames(caphist2), "/"))[seq(2,ncol(caphist2)*2, 
     names(AIC_list) <- river_single
 
     ### all results
-    results <- compile_results(dir=riv_res_dir, spatial_collapse="river")
+    results <- compile_results(dir=riv_res_dir, spatial_collapse="river",
+    	model="S.constant_p.constant_Psi.stratum")
     saveRDS(results, file.path(riv_res_dir, "results_compiled.rds"))
-
-
-
 
 
 
@@ -169,38 +167,6 @@ season_vec <- unlist(strsplit(colnames(caphist2), "/"))[seq(2,ncol(caphist2)*2, 
 ##############################
 
 reg_res_dir <- file.path(res_dir, "region_collapse")
-
-## data frame of transmitter numbers deployed in each river by date
-tags <- compile_transmitters(data_dir)
-
-## data frame of detections from each receiver
-# detections <- compile_detections(data_dir)
-# saveRDS(detections, file.path(res_dir, "detections.rds"))
-detections <- readRDS(file.path(res_dir, "detections.rds"))
-
-## at least 3 detections in 1 month per transmitter/receiver combination
-# filtered <- filter_detections(detections)
-# saveRDS(filtered, file.path(res_dir, "filtered_detections.rds"))
-filtered <- readRDS(file.path(res_dir, "filtered_detections.rds"))
-
-## find detections that were Gulf sturgeon based on transmitters deployed
-# GSdets <- find_GS(detections=filtered, transmitters=tags)
-# saveRDS(GSdets, file.path(res_dir, "filtered_GSdets.rds"))
-GSdets <- readRDS(file.path(res_dir, "filtered_GSdets.rds"))
-
-## setup capture histories
-# caphist <- setup_capture_histories(data=GSdets, tags=tags)
-# saveRDS(caphist, file.path(res_dir, "capture_histories_4seasons.rds"))
-caphist <- readRDS(file.path(res_dir, "capture_histories_4seasons.rds"))
-
-## convert monthly to 2-season time scale
-# caphist2 <- months2seasons(ch=caphist, num_seasons=2) ## also option for 4 seasons per year
-# saveRDS(caphist2, file.path(res_dir, "capture_histories_2seasons.rds"))
-caphist2 <- readRDS(file.path(res_dir, "capture_histories_2seasons.rds"))
-
-## years in capture history
-year_vec <- as.numeric(unlist(strsplit(unlist(strsplit(colnames(caphist2), "/"))[seq(1,ncol(caphist2)*2, by=2)], "r"))[seq(2,ncol(caphist2)*2, by=2)])
-season_vec <- unlist(strsplit(colnames(caphist2), "/"))[seq(2,ncol(caphist2)*2, by=2)]
 
 ####### ANALYSIS BY REGION
     reg_code <- c("A", "B", "C", "D")
