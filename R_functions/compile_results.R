@@ -1,8 +1,8 @@
-compile_results <- function(dir, spatial_collapse){
+compile_results <- function(dir, spatial_collapse, model){
 
 	if(spatial_collapse=="river"){
 
-	    choose <- "S.constant_p.constant_Psi.stratum"    
+	    # model <- "S.constant_p.constant_Psi.stratum"    
 
     	output <- (list.files(dir))[grep("output", list.files(dir))]
     	out_names <- sapply(1:length(output), function(x) unlist(strsplit(output[x], "_"))[1])
@@ -12,7 +12,7 @@ compile_results <- function(dir, spatial_collapse){
     	names(allres) <- out_names    
     
 
-    	subres <- lapply(1:length(allres), function(x) allres[[x]][choose])
+    	subres <- lapply(1:length(allres), function(x) allres[[x]][model])
     	names(subres) <- out_names    
 
     	survival <- NULL
@@ -49,13 +49,13 @@ compile_results <- function(dir, spatial_collapse){
     }
     if(spatial_collapse=="region"){
 
-    	choose <- "S.group_p.stratum_Psi.markov2"
+    	# model <- "S.group_p.stratum_Psi.markov2"
 
     	output <- list.files(dir)[grep("output", list.files(dir))]
     	if(length(output)==1) allres <- readRDS(file.path(dir, output))
     	if(length(output)>1) stop("geographic area method should have only 1 output file")
 
-    	subres <- allres[[choose]]
+    	subres <- allres[[model]]
 
         reg_code <- c("A", "B", "C", "D")
 
