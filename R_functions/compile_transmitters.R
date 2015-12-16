@@ -10,7 +10,7 @@ NOAA_date_convert <- sapply(1:nrow(NOAAtags), function(x) paste0(convert_year(yr
 
 NOAAdf <- data.frame("Transmitter"=as.character(NOAAtags$Transmitter), 
   "River"=as.character(NOAAtags$River),
-  "Date"=as.character(NOAA_date_convert))
+  "Date"=as.character(NOAA_date_convert), "List"=1, stringsAsFactors=FALSE)
 
 
 #### December 2015 - NRDA tags
@@ -25,10 +25,49 @@ NRDA_riv_code <- sapply(1:nrow(NRDAtags), function(x) assign_riv(name=NRDAtags$L
 
 NRDAdf <- data.frame("Transmitter"=as.character(NRDAtags$V_TagID), 
   "River"=as.character(NRDA_riv_code),
-  "Date"=as.character(NRDA_date_convert))
+  "Date"=as.character(NRDA_date_convert), "List"=2, stringsAsFactors=FALSE)
+
+## two Suwannee River tags were misspecified in NRDA set - correct tag numbers
+NRDAdf[which(NRDAdf$Transmitter=="46166" & NRDAdf$River=="SR"),"Transmitter"] <- "46160"
+NRDAdf[which(NRDAdf$Transmitter=="46188" & NRDAdf$River=="SR"),"Transmitter"] <- "46148"
+
 
 if(include_NRDA==TRUE){
-  tags_df <- rbind.data.frame(NOAAdf, NRDAdf)
+  tags_df_bind <- rbind.data.frame(NOAAdf, NRDAdf)
+
+  find_dup_all <- find_sing_all <- data.frame("Transmitter"=as.numeric(), "River"=as.character(), "Date"=as.character(), "List"=as.numeric())
+  tagvec <- unique(tags_df_bind$Transmitter)
+  for(i in 1:length(tagvec)){
+  	sub <- tags_df_bind[which(tags_df_bind$Transmitter==tagvec[i]),]
+  	usub <- unique(sub[,c("Transmitter", "River", "Date")])
+  	if(nrow(usub)>1) find_dup_all <- rbind.data.frame(find_dup_all, sub)
+  	if(nrow(usub)==1) find_sing_all <- rbind.data.frame(find_sing_all, usub)
+  }
+
+	if(nrow(find_dup_all)>0) write.csv(find_dup_all, file.path(data_dir, "transmitter_conflicts.csv"), row.names=FALSE)
+
+	find_earliest <- function(transmitter, df){
+		sub <- df[which(df$Transmitter==transmitter),]
+		min <- sub$Date[which(grepl("Yr1", sub$Date))]
+		if(length(index)>1){
+			sub2 <- sub[which(grepl("Yr1", sub$Date)),]
+			mo <- as.numeric(sapply(1:nrow(sub2), function(x) strsplit(as.character(sub2$Date), "/")[[x]][2]))
+			min <- sub$Date[which(sub$Date==paste0("Yr1/", min(mo)))]
+		}
+		if(length(index)==0){
+			sub2 <- sub[which(grepl("Yr2", sub$Date)),]
+			mo <- as.numeric(sapply(1:nrow(sub2), function(x) strsplit(as.character(sub2$Date), "/")[[x]][2]))
+			min <- sub$Date[which(sub$Date==paste0("Yr2/", min(mo)))]
+		}
+		out <- df[which(df$Transmitter==transmitter & df$Date==min[1])[1],]
+		return(out)
+	}
+
+	### choose earliest date
+	dup_tagvec <- as.character(unique(find_dup_all$Transmitter))
+	dup_to_sing <- as.data.frame(t(sapply(1:length(dup_tagvec), function(x) find_earliest(transmitter=dup_tagvec[x], df=find_dup_all))))
+
+	tags_df <- rbind.data.frame(find_sing_all, dup_to_sing[,c("Transmitter", "River", "Date")])
 }
 
 if(include_NRDA==FALSE){

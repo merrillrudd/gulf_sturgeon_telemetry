@@ -35,6 +35,7 @@ source(file.path(fun_dir, "functions.R"))
 riv_res_dir <- file.path(res_dir, "river_collapse")
 
 ## data frame of transmitter numbers deployed in each river by date
+### ISSUE WITH TRANSMITTERS - Overlapping numbers in multiple river drainages
 tags_wNRDA <- unique(compile_transmitters(data_csv_dir, include_NRDA=TRUE))
 tags_noNRDA <- compile_transmitters(data_csv_dir, include_NRDA=FALSE)
 saveRDS(tags_wNRDA, file.path(data_dir, "tags_withNRDA.rds"))
