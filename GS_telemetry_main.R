@@ -1,12 +1,22 @@
 ##############################
 ## Header
 ##############################
-## set directories
+## clear objects
 rm(list=ls())
+
+## set to your working directory
 init_dir <- "C:\\Git_Projects\\gulf_sturgeon_telemetry"
+
+## csv files - not necessary if compiled files are saved as .rds in data_comp_dir
 data_csv_dir <- file.path(init_dir, "Data_csv")
-data_dir <- file.path(init_dir, "data")
+
+## compiled data files saved as .rds - load faster than .csv and don't need to re-run compiling functions
+data_comp_dir <- file.path(init_dir, "data")
+
+## directory with functions used in analysis
 fun_dir <- file.path(init_dir, "R_functions")
+
+## save results in separate folder
 res_dir <- file.path(init_dir, "results")
     dir.create(res_dir, showWarnings=FALSE)
 
@@ -29,49 +39,50 @@ source(file.path(fun_dir, "functions.R"))
 # region_results <- readRDS(file.path(reg_res_dir, "results_compiled.rds"))
 
 ##########################################
-## Run analysis by river, with NRDA tags
+## Filter data
 ##########################################
 
 riv_res_dir <- file.path(res_dir, "river_collapse")
 
 ## data frame of transmitter numbers deployed in each river by date
-### ISSUE WITH TRANSMITTERS - Overlapping numbers in multiple river drainages
-tags_wNRDA <- unique(compile_transmitters(data_csv_dir, include_NRDA=TRUE))
-tags_noNRDA <- compile_transmitters(data_csv_dir, include_NRDA=FALSE)
-saveRDS(tags_wNRDA, file.path(data_dir, "tags_withNRDA.rds"))
-saveRDS(tags_noNRDA, file.path(data_dir, "tags_noNRDA.rds"))
-tags <- readRDS(file.path(data_dir, "tags_withNRDA.rds"))
+# tags_wNRDA <- unique(compile_transmitters(data_csv_dir, include_NRDA=TRUE))
+# tags_noNRDA <- compile_transmitters(data_csv_dir, include_NRDA=FALSE)
+# saveRDS(tags_wNRDA, file.path(data_comp_dir, "tags_withNRDA.rds"))
+# saveRDS(tags_noNRDA, file.path(data_comp_dir, "tags_noNRDA.rds"))
+tags <- readRDS(file.path(data_comp_dir, "tags_withNRDA.rds"))
 
 ## data frame of detections from each receiver
 # detections <- compile_detections(data_csv_dir)
-# saveRDS(detections, file.path(data_dir, "detections.rds"))
-detections <- readRDS(file.path(data_dir, "detections.rds"))
+# saveRDS(detections, file.path(data_comp_dir, "detections.rds"))
+detections <- readRDS(file.path(data_comp_dir, "detections.rds"))
 
 ## at least 3 detections in 1 month per transmitter/receiver combination
 # filtered <- filter_detections(detections)
-# saveRDS(filtered, file.path(data_dir, "filtered_detections.rds"))
-filtered <- readRDS(file.path(data_dir, "filtered_detections.rds"))
+# saveRDS(filtered, file.path(data_comp_dir, "filtered_detections.rds"))
+filtered <- readRDS(file.path(data_comp_dir, "filtered_detections.rds"))
 
 ## find detections that were Gulf sturgeon based on transmitters deployed
 # GSdets <- find_GS(detections=filtered, transmitters=tags)
-# saveRDS(GSdets, file.path(data_dir, "filtered_GSdets.rds"))
-GSdets <- readRDS(file.path(data_dir, "filtered_GSdets.rds"))
+# saveRDS(GSdets, file.path(data_comp_dir, "filtered_GSdets.rds"))
+GSdets <- readRDS(file.path(data_comp_dir, "filtered_GSdets.rds"))
 
 ## setup capture histories
 # caphist <- setup_capture_histories(data=GSdets, tags=tags)
-# saveRDS(caphist, file.path(data_dir, "capture_histories_4seasons.rds"))
-caphist <- readRDS(file.path(data_dir, "capture_histories_4seasons.rds"))
+# saveRDS(caphist, file.path(data_comp_dir, "capture_histories_4seasons.rds"))
+caphist <- readRDS(file.path(data_comp_dir, "capture_histories_4seasons.rds"))
 
 ## convert monthly to 2-season time scale
 # caphist2 <- months2seasons(ch=caphist, num_seasons=2) ## also option for 4 seasons per year
-# saveRDS(caphist2, file.path(data_dir, "capture_histories_2seasons.rds"))
-caphist2 <- readRDS(file.path(data_dir, "capture_histories_2seasons.rds"))
+# saveRDS(caphist2, file.path(data_comp_dir, "capture_histories_2seasons.rds"))
+caphist2 <- readRDS(file.path(data_comp_dir, "capture_histories_2seasons.rds"))
 
 ## years in capture history
 year_vec <- as.numeric(unlist(strsplit(unlist(strsplit(colnames(caphist2), "/"))[seq(1,ncol(caphist2)*2, by=2)], "r"))[seq(2,ncol(caphist2)*2, by=2)])
 season_vec <- unlist(strsplit(colnames(caphist2), "/"))[seq(2,ncol(caphist2)*2, by=2)]
 
-######## ANALYSIS BY RIVER
+##########################################
+## Analysis by river
+##########################################
     ## list of capture history matrix for each of nine rivers
     river_single <- c("S", "K", "A", "C", "Y", "B", "E", "P", "L")
 
@@ -86,7 +97,7 @@ season_vec <- unlist(strsplit(colnames(caphist2), "/"))[seq(2,ncol(caphist2)*2, 
     dir.create(riv_res_dir, showWarnings=FALSE)
 
     ## un-comment to re-run
-    ## ran on 12/14/2015 at 6:34pm
+    ## ran on 12/16/2015 at 4:36pm PST
     # run Rmark -- problems running MARK within environment of function
     for(rr in 1:length(ch_riv_rmark)){
 
@@ -153,13 +164,14 @@ season_vec <- unlist(strsplit(colnames(caphist2), "/"))[seq(2,ncol(caphist2)*2, 
     }
 
     ### compare models
-    AIC_list <- lapply(1:length(river_single), function(x) get_AIC(output_list=readRDS(file.path(riv_res_dir, paste0(river_single[x], "_output.rds")))))
-    names(AIC_list) <- river_single
+    AIC_list_river <- lapply(1:length(river_single), function(x) get_AIC(output_list=readRDS(file.path(riv_res_dir, paste0(river_single[x], "_output.rds")))))
+    names(AIC_list_river) <- river_single
 
     ### all results
+    model <- "S.constant_p.constant_Psi.stratum"
     results <- compile_results(dir=riv_res_dir, spatial_collapse="river",
-    	model="S.constant_p.constant_Psi.stratum")
-    saveRDS(results, file.path(riv_res_dir, "results_compiled.rds"))
+    	model=model)
+    saveRDS(results, file.path(riv_res_dir, paste0("results_compiled_", model, ".rds")))
 
 
 
@@ -252,11 +264,13 @@ reg_res_dir <- file.path(res_dir, "region_collapse")
     	saveRDS(output, file.path(reg_res_dir, paste0("region_output.rds")))
 
     ### compare models
-    AIC_list <- get_AIC(output_list=readRDS(file.path(reg_res_dir, "region_output.rds")))
+    AIC_list_region <- get_AIC(output_list=readRDS(file.path(reg_res_dir, "region_output.rds")))
 
     ### all results
-    results <- compile_results(reg_res_dir, spatial_collapse="region")
-    saveRDS(results, file.path(reg_res_dir, "results_compiled.rds"))
+    model <- "S.stratum_year_p.stratum_Psi.markov2"
+    results <- compile_results(dir=reg_res_dir, spatial_collapse="region",
+    	model=model)
+    saveRDS(results, file.path(reg_res_dir, paste0("results_compiled_", model, ".rds")))
 
 
 ## check assumptions
