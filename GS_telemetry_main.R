@@ -30,13 +30,12 @@ source(file.path(fun_dir, "functions.R"))
 ##############################
 ## Synthesis of results
 ##############################
-### not done running with new data as of 12/14/2015
 
-# riv_res_dir <- file.path(res_dir, "river_collapse")
-# reg_res_dir <- file.path(res_dir, "region_collapse")
+riv_res_dir <- file.path(res_dir, "river_collapse")
+reg_res_dir <- file.path(res_dir, "region_collapse")
 
-# river_results <- readRDS(file.path(riv_res_dir, "results_compiled.rds"))
-# region_results <- readRDS(file.path(reg_res_dir, "results_compiled.rds"))
+river_results <- readRDS(file.path(riv_res_dir, "results_compiled_S.constant_p.constant_Psi.stratum.rds"))
+region_results <- readRDS(file.path(reg_res_dir, "results_compiled_S.group_p.stratum_Psi.markov2.rds"))
 
 ##########################################
 ## Filter data
