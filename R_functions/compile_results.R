@@ -59,11 +59,11 @@ compile_results <- function(dir, spatial_collapse, model){
 
         reg_code <- c("A", "B", "C", "D")
 
-    	surv_out <- subres$real[1:4,c("estimate", "se", "lcl", "ucl")]
-    	rownames(surv_out) <- reg_code
+    	surv_out <- subres$real[grep("S ", rownames(subres$real)),c("estimate", "se", "lcl", "ucl")]
+    	# rownames(surv_out) <- reg_code
 
-    	det_out <- subres$real[5:nrow(subres$real), c("estimate", "se", "lcl", "ucl")]
-    	rownames(det_out) <- c(reg_code, "M")
+    	det_out <- subres$real[grep("p ", rownames(subres$real)), c("estimate", "se", "lcl", "ucl")]
+    	# rownames(det_out) <- c(reg_code, "M")
 
     	transition <- transition_se <- transition_lcl <- transition_ucl <- matrix(NA, nrow=4, ncol=4)
     	rownames(transition) <- colnames(transition) <- rownames(transition_se) <- colnames(transition_se) <- rownames(transition_lcl) <- colnames(transition_lcl) <- rownames(transition_ucl) <- colnames(transition_ucl) <- reg_code
