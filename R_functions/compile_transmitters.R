@@ -1,6 +1,6 @@
 ## MBR Dec 2015
 
-compile_transmitters <- function(data_dir, include_NRDA=TRUE){
+compile_transmitters <- function(data_dir, include_NRDA=TRUE, adults=TRUE){
 
 #### September 2012 - Updated list of transmitters entered in all rivers during cooperative tagging program from Ivy Baremore
   ### WITH MONTH, LENGTH, WEIGHT, LATITUDE, AND LONGITUDE, ANIMAL ID, AND SEX INFORMATION
@@ -8,10 +8,13 @@ NOAAtags <- read.csv(file.path(data_dir, "ALLV16_9.12_OFFICIAL MR.csv"), strings
 
 NOAA_date_convert <- sapply(1:nrow(NOAAtags), function(x) paste0(convert_year(yr=NOAAtags$Year[x],  mo=NOAAtags$Month[x]), "/", NOAAtags$Month[x]))
 
-NOAAdf <- data.frame("Transmitter"=as.character(NOAAtags$Transmitter), 
+NOAAdf_tl <- data.frame("Transmitter"=as.character(NOAAtags$Transmitter), 
   "River"=as.character(NOAAtags$River),
-  "Date"=as.character(NOAA_date_convert), "List"=1, stringsAsFactors=FALSE)
+  "Date"=as.character(NOAA_date_convert), "TL"=as.character(NOAAtags$TL), 
+  "List"=1, stringsAsFactors=FALSE)
 
+NOAAdf <- NOAAdf_tl[which(NOAAdf_tl$TL >= 135),c("Transmitter", "River", "Date", "List")]
+NOAAdf_juv <- NOAAdf_tl[which(NOAAdf_tl$TL < 135),]
 
 #### December 2015 - NRDA tags
 NRDAtags <- read.csv(file.path(data_dir, "List of NRDA VEMCO tags.csv"), stringsAsFactors=FALSE)
@@ -22,10 +25,10 @@ NRDAtags$Year <- sapply(1:nrow(NRDAtags), function(x) as.numeric(strsplit(NRDAta
 NRDA_date_convert <- sapply(1:nrow(NRDAtags), function(x) paste0(convert_year(yr=NRDAtags$Year[x], mo=NRDAtags$Month[x]), "/", NRDAtags$Month[x]))
 NRDA_riv_code <- sapply(1:nrow(NRDAtags), function(x) assign_riv(name=NRDAtags$Location[x], underscore=TRUE, single_code=FALSE))
 
-
 NRDAdf <- data.frame("Transmitter"=as.character(NRDAtags$V_TagID), 
   "River"=as.character(NRDA_riv_code),
-  "Date"=as.character(NRDA_date_convert), "List"=2, stringsAsFactors=FALSE)
+  "Date"=as.character(NRDA_date_convert), 
+  "List"=2, stringsAsFactors=FALSE)
 
 ## two Suwannee River tags were misspecified in NRDA set - correct tag numbers
 NRDAdf[which(NRDAdf$Transmitter=="46166" & NRDAdf$River=="SR"),"Transmitter"] <- "46160"
@@ -49,12 +52,12 @@ if(include_NRDA==TRUE){
 	find_earliest <- function(transmitter, df){
 		sub <- df[which(df$Transmitter==transmitter),]
 		min <- sub$Date[which(grepl("Yr1", sub$Date))]
-		if(length(index)>1){
+		if(length(min)>1){
 			sub2 <- sub[which(grepl("Yr1", sub$Date)),]
 			mo <- as.numeric(sapply(1:nrow(sub2), function(x) strsplit(as.character(sub2$Date), "/")[[x]][2]))
 			min <- sub$Date[which(sub$Date==paste0("Yr1/", min(mo)))]
 		}
-		if(length(index)==0){
+		if(length(min)==0){
 			sub2 <- sub[which(grepl("Yr2", sub$Date)),]
 			mo <- as.numeric(sapply(1:nrow(sub2), function(x) strsplit(as.character(sub2$Date), "/")[[x]][2]))
 			min <- sub$Date[which(sub$Date==paste0("Yr2/", min(mo)))]
@@ -72,6 +75,10 @@ if(include_NRDA==TRUE){
 
 if(include_NRDA==FALSE){
   tags_df <- NOAAdf
+}
+
+if(adults==FALSE){
+	tags_df <- NOAAdf_juv
 }
 
 
