@@ -77,6 +77,33 @@ data1$River <- unlist(sapply(1:nrow(data1), function(x) riv.code[which(allrec==d
 print("compiling data post-2012")
 newdata <- read.csv(file.path(data_dir, "merged_receiverData_withRiver_13Dec15.csv"), stringsAsFactors=FALSE)
 
+## pascagoula files
+pdir <- file.path(data_dir, "Pascagoula_12_2015")
+plist <- list.files(pdir)[-grep(".xlsx", list.files(pdir))]
+
+read_pfiles <- function(dir){
+  list_pp <- list.files(dir)
+  out <- NULL
+  for(i in 1:length(list_pp)){
+    read <- read.csv(file.path(dir, list_pp[i]))
+    if(length(out)>0) colnames(read) <- colnames(out)
+    out <- rbind.data.frame(out, read)
+    rm(read)
+  }
+  return(out)
+}
+
+pfiles <- NULL
+for(i in 1:length(plist)){
+  pfiles <- rbind.data.frame(pfiles, read_pfiles(file.path(pdir, plist[i])))
+}
+pfiles$Date <- as.character(pfiles[,grep("Date..UTC", colnames(pfiles))])
+pfiles$Time <- as.character(pfiles[,grep("Time..UTC", colnames(pfiles))])
+pfiles$Year <- as.numeric(sapply(1:nrow(pfiles), function(x) unlist(strsplit(pfiles$Date[x], "-"))[1]))
+pfiles$Month <- as.numeric(sapply(1:nrow(pfiles), function(x) unlist(strsplit(pfiles$Date[x], "-"))[2]))
+pfiles$Day <- as.numeric(sapply(1:nrow(pfiles), function(x) unlist(strsplit(pfiles$Date[x], "-"))[3]))
+pfiles$River <- "P"
+
 ## some adjustments to date and time
 dates <- sapply(strsplit(newdata$Date.Time.UTC, " ", fixed=TRUE), function (x) (x[1]))
 newdata$Date <- as.character(as.Date(dates, "%m/%d/%Y")) #create new column with date information only
@@ -161,13 +188,18 @@ for(i in 1:length(multi_loc)){
 if(length(which(is.na(newdata2$River)))>0) stop("not all detections assigned river codes")
 
 
+
 rec_list <- sapply(1:nrow(newdata2), function(x) strsplit(newdata2$Receiver[x], "-")[[1]][2]) 
+rec_list_p <- sapply(1:nrow(pfiles), function(x) strsplit(as.character(pfiles$Receiver[x]), "-")[[1]][2])
 trans_list <- sapply(1:nrow(newdata2), function(x) strsplit(newdata2$Transmitter[x], "-")[[1]][3])
+trans_list_p <- sapply(1:nrow(pfiles), function(x) strsplit(as.character(pfiles$Transmitter[x]), "-")[[1]][3])
 
 data2 <- data.frame("Month"=newdata2$Month, "Day"=newdata2$Day, "Year"=newdata2$Year, "Time"=newdata2$Time,
   "Receiver"=rec_list, "Transmitter"=trans_list, "River"=newdata2$River)
+data2p <- data.frame("Month"=pfiles$Month, "Day"=pfiles$Day, "Year"=pfiles$Year, "Time"=pfiles$Time,
+  "Receiver"=rec_list_p, "Transmitter"=trans_list_p, "River"=pfiles$River)
 
-alldata <- rbind.data.frame(data1, data2)
+alldata <- rbind.data.frame(data1, data2, data2p)
 
 ### total detections of each transmitter in each month
 alldata$Receiver.Transmitter <- paste(alldata$Receiver, alldata$Transmitter, sep=".")
