@@ -10,7 +10,7 @@ NOAA_date_convert <- sapply(1:nrow(NOAAtags), function(x) paste0(convert_year(yr
 
 NOAAdf_fl <- data.frame("Transmitter"=as.character(NOAAtags$Transmitter), 
   "River"=as.character(NOAAtags$River),
-  "Date"=as.character(NOAA_date_convert), "FL"=as.character(NOAAtags$FL), 
+  "Date"=as.character(NOAA_date_convert), "FL"=as.numeric(NOAAtags$FL), 
   "List"=1, stringsAsFactors=FALSE)
 
 NOAAdf <- NOAAdf_fl[which(NOAAdf_fl$FL >= 125),]
@@ -42,7 +42,7 @@ if(include_NRDA==TRUE){
   if(adults==TRUE) tags_df_bind <- rbind.data.frame(NOAAdf, NRDAdf)
   if(adults==FALSE) tags_df_bind <- rbind.data.frame(NOAAdf_juv, NRDAdf_juv)
 
-  find_dup_all <- find_sing_all <- data.frame("Transmitter"=as.numeric(), "River"=as.character(), "Date"=as.character(), "List"=as.numeric())
+  find_dup_all <- find_sing_all <- data.frame("Transmitter"=as.numeric(), "River"=as.character(), "Date"=as.character(), "FL"=as.numeric(), "List"=as.numeric())
   tagvec <- unique(tags_df_bind$Transmitter)
   for(i in 1:length(tagvec)){
   	sub <- tags_df_bind[which(tags_df_bind$Transmitter==tagvec[i]),]
@@ -81,7 +81,7 @@ if(include_NRDA==TRUE){
 	dup_tagvec <- as.character(unique(find_dup_all$Transmitter))
 	dup_to_sing <- as.data.frame(t(sapply(1:length(dup_tagvec), function(x) find_earliest(transmitter=dup_tagvec[x], df=find_dup_all))))
 
-	tags_df <- rbind.data.frame(find_sing_all, dup_to_sing[,c("Transmitter", "River", "Date")])
+	tags_df <- rbind.data.frame(find_sing_all, dup_to_sing[,c("Transmitter", "River", "Date", "FL")])
 }
 
 if(include_NRDA==FALSE){
