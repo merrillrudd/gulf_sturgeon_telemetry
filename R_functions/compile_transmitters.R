@@ -8,16 +8,17 @@ NOAAtags <- read.csv(file.path(data_dir, "ALLV16_9.12_OFFICIAL MR.csv"), strings
 
 NOAA_date_convert <- sapply(1:nrow(NOAAtags), function(x) paste0(convert_year(yr=NOAAtags$Year[x],  mo=NOAAtags$Month[x]), "/", NOAAtags$Month[x]))
 
-NOAAdf_tl <- data.frame("Transmitter"=as.character(NOAAtags$Transmitter), 
+NOAAdf_fl <- data.frame("Transmitter"=as.character(NOAAtags$Transmitter), 
   "River"=as.character(NOAAtags$River),
-  "Date"=as.character(NOAA_date_convert), "TL"=as.character(NOAAtags$TL), 
+  "Date"=as.character(NOAA_date_convert), "FL"=as.character(NOAAtags$FL), 
   "List"=1, stringsAsFactors=FALSE)
 
-NOAAdf <- NOAAdf_tl[which(NOAAdf_tl$TL >= 135),c("Transmitter", "River", "Date", "List")]
-NOAAdf_juv <- NOAAdf_tl[which(NOAAdf_tl$TL < 135),]
+NOAAdf <- NOAAdf_fl[which(NOAAdf_fl$FL >= 125),]
+NOAAdf_juv <- NOAAdf_fl[which(NOAAdf_fl$FL < 125),]
 
 #### December 2015 - NRDA tags
-NRDAtags <- read.csv(file.path(data_dir, "List of NRDA VEMCO tags.csv"), stringsAsFactors=FALSE)
+NRDAtags <- read.csv(file.path(data_dir, "Tags_vs_Forklength.csv"), stringsAsFactors=FALSE)
+
 NRDAtags$Month <- sapply(1:nrow(NRDAtags), function(x) as.numeric(strsplit(NRDAtags$Date[x], "/")[[1]][1]))
 NRDAtags$Day <- sapply(1:nrow(NRDAtags), function(x) as.numeric(strsplit(NRDAtags$Date[x], "/")[[1]][2]))
 NRDAtags$Year <- sapply(1:nrow(NRDAtags), function(x) as.numeric(strsplit(NRDAtags$Date[x], "/")[[1]][3]))
@@ -25,18 +26,21 @@ NRDAtags$Year <- sapply(1:nrow(NRDAtags), function(x) as.numeric(strsplit(NRDAta
 NRDA_date_convert <- sapply(1:nrow(NRDAtags), function(x) paste0(convert_year(yr=NRDAtags$Year[x], mo=NRDAtags$Month[x]), "/", NRDAtags$Month[x]))
 NRDA_riv_code <- sapply(1:nrow(NRDAtags), function(x) assign_riv(name=NRDAtags$Location[x], underscore=TRUE, single_code=FALSE))
 
-NRDAdf <- data.frame("Transmitter"=as.character(NRDAtags$V_TagID), 
+NRDAdf_fl <- data.frame("Transmitter"=as.character(NRDAtags$V_TagID), 
   "River"=as.character(NRDA_riv_code),
-  "Date"=as.character(NRDA_date_convert), 
+  "Date"=as.character(NRDA_date_convert), "FL"=as.character(NRDAtags$FL),
   "List"=2, stringsAsFactors=FALSE)
 
 ## two Suwannee River tags were misspecified in NRDA set - correct tag numbers
-NRDAdf[which(NRDAdf$Transmitter=="46166" & NRDAdf$River=="SR"),"Transmitter"] <- "46160"
-NRDAdf[which(NRDAdf$Transmitter=="46188" & NRDAdf$River=="SR"),"Transmitter"] <- "46148"
+NRDAdf_fl[which(NRDAdf_fl$Transmitter=="46166" & NRDAdf_fl$River=="SR"),"Transmitter"] <- "46160"
+NRDAdf_fl[which(NRDAdf_fl$Transmitter=="46188" & NRDAdf_fl$River=="SR"),"Transmitter"] <- "46148"
 
+NRDAdf <- NRDAdf_fl[which(NRDAdf_fl$FL >= 125),]
+NRDAdf_juv <- NRDAdf_fl[which(NRDAdf_fl$FL < 125),]
 
 if(include_NRDA==TRUE){
-  tags_df_bind <- rbind.data.frame(NOAAdf, NRDAdf)
+  if(adults==TRUE) tags_df_bind <- rbind.data.frame(NOAAdf, NRDAdf)
+  if(adults==FALSE) tags_df_bind <- rbind.data.frame(NOAAdf_juv, NRDAdf_juv)
 
   find_dup_all <- find_sing_all <- data.frame("Transmitter"=as.numeric(), "River"=as.character(), "Date"=as.character(), "List"=as.numeric())
   tagvec <- unique(tags_df_bind$Transmitter)
@@ -47,7 +51,14 @@ if(include_NRDA==TRUE){
   	if(nrow(usub)==1) find_sing_all <- rbind.data.frame(find_sing_all, usub)
   }
 
-	if(nrow(find_dup_all)>0) write.csv(find_dup_all, file.path(data_dir, "transmitter_conflicts.csv"), row.names=FALSE)
+  if(adults==TRUE){
+  	if(nrow(find_dup_all)>0) write.csv(find_dup_all, file.path(data_dir, "transmitter_conflicts.csv"), row.names=FALSE)
+  	if(nrow(find_dup_all)==0 & file.exists(file.path(data_dir, "transmitter_conflicts.csv"))) unlink(file.path(data_dir, "transmitter_conflicts.csv"), TRUE)
+  }
+  if(adults==FALSE){
+  	if(nrow(find_dup_all)>0) write.csv(find_dup_all, file.path(data_dir, "juvenile_transmitter_conflicts.csv"), row.names=FALSE)
+  	if(nrow(find_dup_all)==0 & file.exists(file.path(data_dir, "juvenile_transmitter_conflicts.csv"))) unlink(file.path(data_dir, "juvenile_transmitter_conflicts.csv"), TRUE)
+  }
 
 	find_earliest <- function(transmitter, df){
 		sub <- df[which(df$Transmitter==transmitter),]
@@ -74,11 +85,8 @@ if(include_NRDA==TRUE){
 }
 
 if(include_NRDA==FALSE){
-  tags_df <- NOAAdf
-}
-
-if(adults==FALSE){
-	tags_df <- NOAAdf_juv
+  if(adults==TRUE) tags_df <- NOAAdf
+  if(adults==FALSE) tags_df <- NOAAdf_juv
 }
 
 
