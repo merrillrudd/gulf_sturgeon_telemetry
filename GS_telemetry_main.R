@@ -44,10 +44,12 @@ region_results <- readRDS(file.path(reg_res_dir, "results_compiled_S.group_p.str
 riv_res_dir <- file.path(res_dir, "river_collapse")
 
 ## data frame of transmitter numbers deployed in each river by date
-# tags_wNRDA <- unique(compile_transmitters(data_csv_dir, include_NRDA=TRUE))
+# tags_wNRDA <- compile_transmitters(data_csv_dir, include_NRDA=TRUE)
 # tags_noNRDA <- compile_transmitters(data_csv_dir, include_NRDA=FALSE)
+# tags_juv <- compile_transmitters(data_csv_dir, adults=FALSE)
 # saveRDS(tags_wNRDA, file.path(data_comp_dir, "tags_withNRDA.rds"))
 # saveRDS(tags_noNRDA, file.path(data_comp_dir, "tags_noNRDA.rds"))
+# saveRDS(tags_juv, file.path(data_comp_dir, "tags_juv.rds"))
 tags <- readRDS(file.path(data_comp_dir, "tags_withNRDA.rds"))
 
 ## data frame of detections from each receiver
