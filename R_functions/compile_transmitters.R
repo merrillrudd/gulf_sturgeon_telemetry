@@ -28,7 +28,7 @@ NRDA_riv_code <- sapply(1:nrow(NRDAtags), function(x) assign_riv(name=NRDAtags$L
 
 NRDAdf_fl <- data.frame("Transmitter"=as.character(NRDAtags$V_TagID), 
   "River"=as.character(NRDA_riv_code),
-  "Date"=as.character(NRDA_date_convert), "FL"=as.character(NRDAtags$FL),
+  "Date"=as.character(NRDA_date_convert), "FL"=as.numeric(NRDAtags$FL),
   "List"=2, stringsAsFactors=FALSE)
 
 ## two Suwannee River tags were misspecified in NRDA set - correct tag numbers
@@ -48,8 +48,10 @@ if(include_NRDA==TRUE){
   	sub <- tags_df_bind[which(tags_df_bind$Transmitter==tagvec[i]),]
   	usub <- unique(sub[,c("Transmitter", "River", "Date")])
   	if(nrow(usub)>1) find_dup_all <- rbind.data.frame(find_dup_all, sub)
-  	if(nrow(usub)==1) find_sing_all <- rbind.data.frame(find_sing_all, usub)
+  	if(nrow(usub)==1) find_sing_all <- rbind.data.frame(find_sing_all, sub[1,])
   }
+
+  if(nrow(find_sing_all)!=length(unique(find_sing_all$Transmitter))) stop("Multiple lengths likely associated with same tagged fish")
 
   if(adults==TRUE){
   	if(nrow(find_dup_all)>0) write.csv(find_dup_all, file.path(data_dir, "transmitter_conflicts.csv"), row.names=FALSE)
@@ -81,12 +83,12 @@ if(include_NRDA==TRUE){
 	dup_tagvec <- as.character(unique(find_dup_all$Transmitter))
 	dup_to_sing <- as.data.frame(t(sapply(1:length(dup_tagvec), function(x) find_earliest(transmitter=dup_tagvec[x], df=find_dup_all))))
 
-	tags_df <- rbind.data.frame(find_sing_all, dup_to_sing[,c("Transmitter", "River", "Date", "FL")])
+	tags_df <- rbind.data.frame(find_sing_all[,c("Transmitter", "River", "Date", "FL")], dup_to_sing[,c("Transmitter", "River", "Date", "FL")])
 }
 
 if(include_NRDA==FALSE){
-  if(adults==TRUE) tags_df <- NOAAdf
-  if(adults==FALSE) tags_df <- NOAAdf_juv
+  if(adults==TRUE) tags_df <- NOAAdf[, c("Transmitter", "River", "Date", "FL")]
+  if(adults==FALSE) tags_df <- NOAAdf_juv[, c("Transmitter", "River", "Date", "FL")]
 }
 
 
