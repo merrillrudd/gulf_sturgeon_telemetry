@@ -268,11 +268,84 @@ reg_res_dir <- file.path(res_dir, "region_collapse")
     AIC_list_region <- get_AIC(output_list=readRDS(file.path(reg_res_dir, "region_output.rds")))
 
     ### all results
-    model <- "S.stratum_year_p.stratum_Psi.markov2"
-    results <- compile_results(dir=reg_res_dir, spatial_collapse="region",
-    	model=model)
-    saveRDS(results, file.path(reg_res_dir, paste0("results_compiled_", model, ".rds")))
+    save_models <- c("S.stratum_year_p.stratum_Psi.markov2", "S.time_p.stratum_Psi.markov2",
+     "S.year_p.stratum_Psi.markov2", "S.stratum_p.stratum_Psi.markov2", "S.group_p.stratum_Psi.markov2")
 
+    save_results <- function(dir, model, spatial_collapse){
+    	results <- compile_results(dir=dir, spatial_collapse=spatial_collapse, model=model)
+    	saveRDS(results, file.path(dir, paste0("results_compiled_", model, ".rds")))
+    }
+
+    save <- sapply(1:length(save_models), function(x) save_results(dir=reg_res_dir, model=save_models[x],
+    														spatial_collapse="region"))
+
+    results_group <- readRDS(file.path(reg_res_dir, paste0("results_compiled_", save_models[grep("group", save_models)], ".rds")))
+
+
+##########################
+## summary
+##########################
+
+count_tags <- function(riv, yr){
+	sub <- tags[which(as.character(tags$River)==riv),]
+	sub2 <- sub[grep(yr, as.character(sub$Date)),]
+	return(nrow(sub2))
+}
+
+count_dets <- function(riv){
+	sub <- GSdets[which(GSdets$River==riv),]
+	countvec <- rep(0, 6)
+	names(countvec) <- c("Yr1", "Yr2", "Yr3", "Yr4", "Yr5", "Yr6")
+	yrs <- unique(sub$Year)
+	for(i in 1:length(yrs)){
+		sub2 <- sub[which(sub$Year==yrs[i]),]
+		c1 <- length(which(sub2$Month<=2))
+		c2 <- length(which(sub2$Month>2))
+		if(yrs[i]==2010) countvec["Yr1"] <- countvec["Yr1"] + c2
+		if(yrs[i]==2011){
+			countvec["Yr1"] <- countvec["Yr1"] + c1
+			countvec["Yr2"] <- countvec["Yr2"] + c2
+		}
+		if(yrs[i]==2012){
+			countvec["Yr2"] <- countvec["Yr2"] + c1
+			countvec["Yr3"] <- countvec["Yr3"] + c2
+		}
+		if(yrs[i]==2013){
+			countvec["Yr3"] <- countvec["Yr3"] + c1
+			countvec["Yr4"] <- countvec["Yr4"] + c2
+		}
+		if(yrs[i]==2014){
+			countvec["Yr4"] <- countvec["Yr4"] + c1
+			countvec["Yr5"] <- countvec["Yr5"] + c2
+		}
+		if(yrs[i]==2015){
+			countvec["Yr5"] <- countvec["Yr5"] + c1
+			countvec["Yr6"] <- countvec["Yr6"] + c2
+		}
+		if(yrs[i]==2016) countvec["Yr6"] <- countvec["Yr6"] + c1
+	}
+	return(countvec)
+}
+
+river_double <- c("SR", "OR", "AR", "CR", "YR", "BR", "ER", "PR", "PE")
+tag_yr <- unique(sapply(1:nrow(tags), function(x) strsplit(as.character(tags$Date)[x], "/")[[1]][1]))
+
+ntags <- NULL
+for(i in 1:length(tag_yr)){
+	count <- sapply(1:length(river_double), function(x) count_tags(riv=river_double[x], yr=tag_yr[i]))
+	ntags[[i]] <- count
+}
+
+ntags_yr <- data.frame("River"=river_double, ntags)
+colnames(ntags_yr) <- c("River", tag_yr)
+
+river_single <- c("S", "K", "A", "C", "Y", "B", "E", "P", "L")
+ndets <- matrix(NA, nrow=length(river_single), ncol=6)
+for(i in 1:length(river_single)){
+	ndets[i,] <- count_dets(riv=river_single[i])
+}
+rownames(ndets) <- river_single
+colnames(ndets) <- c("Yr1", "Yr2", "Yr3", "Yr4", "Yr5", "Yr6")
 
 ## check assumptions
 ## check assumption that fish do not move between river drainages in each season
