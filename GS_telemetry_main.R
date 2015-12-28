@@ -297,11 +297,12 @@ count_tags <- function(riv){
 	return(init)
 }
 
-count_dets <- function(riv){
+count_dets <- function(riv, focal=FALSE){
 	sub <- ch_focal[[riv]]
 	count <- rep(0, ncol(sub))
 	for(i in 1:ncol(sub)){
-		count[i] <- length(which(sub[,i]!="0"))
+		if(focal==FALSE) count[i] <- length(which(sub[,i]!="0"))
+		if(focal==TRUE) count[i] <- length(which(sub[,i] %in% c("M", riv)))
 	}
 
 	return(count)
@@ -323,7 +324,13 @@ ndets <- t(sapply(1:length(river_single), function(x) count_dets(river_single[x]
 rownames(ndets) <- river_single
 colnames(ndets) <- colnames(ch_focal[[1]])
 ndets_real <- ndets - ntags
-write.csv(ndets_real, "count_detections.csv")
+
+ndets_f <- t(sapply(1:length(river_single), function(x) count_dets(river_single[x], focal=TRUE)))
+rownames(ndets_f) <- river_single
+colnames(ndets_f) <- colnames(ch_focal[[1]])
+ndets_f_real <- ndets_f - ntags
+ndets_f_real[which(ndets_f_real<0)] <- 0
+write.csv(ndets_f_real, "count_detections_focal.csv")
 
 par(mfrow=c(3,3), mar=c(0,0,0,0), omi=c(1,1,1,1))
 for(i in 1:length(river_single)){
