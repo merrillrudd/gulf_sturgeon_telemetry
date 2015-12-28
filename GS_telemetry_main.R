@@ -286,66 +286,70 @@ reg_res_dir <- file.path(res_dir, "region_collapse")
 ## summary
 ##########################
 
-count_tags <- function(riv, yr){
-	sub <- tags[which(as.character(tags$River)==riv),]
-	sub2 <- sub[grep(yr, as.character(sub$Date)),]
-	return(nrow(sub2))
+count_tags <- function(riv){
+	sub <- ch_focal[[riv]]
+	init <- rep(0, ncol(sub))
+	for(i in 1:nrow(sub)){
+		index <- which(sub[i,]!="0")[1]
+		init[index] <- init[index] + 1
+	}	
+
+	return(init)
 }
 
 count_dets <- function(riv){
-	sub <- GSdets[which(GSdets$River==riv),]
-	countvec <- rep(0, 6)
-	names(countvec) <- c("Yr1", "Yr2", "Yr3", "Yr4", "Yr5", "Yr6")
-	yrs <- unique(sub$Year)
-	for(i in 1:length(yrs)){
-		sub2 <- sub[which(sub$Year==yrs[i]),]
-		c1 <- length(which(sub2$Month<=2))
-		c2 <- length(which(sub2$Month>2))
-		if(yrs[i]==2010) countvec["Yr1"] <- countvec["Yr1"] + c2
-		if(yrs[i]==2011){
-			countvec["Yr1"] <- countvec["Yr1"] + c1
-			countvec["Yr2"] <- countvec["Yr2"] + c2
-		}
-		if(yrs[i]==2012){
-			countvec["Yr2"] <- countvec["Yr2"] + c1
-			countvec["Yr3"] <- countvec["Yr3"] + c2
-		}
-		if(yrs[i]==2013){
-			countvec["Yr3"] <- countvec["Yr3"] + c1
-			countvec["Yr4"] <- countvec["Yr4"] + c2
-		}
-		if(yrs[i]==2014){
-			countvec["Yr4"] <- countvec["Yr4"] + c1
-			countvec["Yr5"] <- countvec["Yr5"] + c2
-		}
-		if(yrs[i]==2015){
-			countvec["Yr5"] <- countvec["Yr5"] + c1
-			countvec["Yr6"] <- countvec["Yr6"] + c2
-		}
-		if(yrs[i]==2016) countvec["Yr6"] <- countvec["Yr6"] + c1
+	sub <- ch_focal[[riv]]
+	count <- rep(0, ncol(sub))
+	for(i in 1:ncol(sub)){
+		count[i] <- length(which(sub[,i]!="0"))
 	}
-	return(countvec)
+
+	return(count)
 }
 
-river_double <- c("SR", "OR", "AR", "CR", "YR", "BR", "ER", "PR", "PE")
-tag_yr <- unique(sapply(1:nrow(tags), function(x) strsplit(as.character(tags$Date)[x], "/")[[1]][1]))
-
-ntags <- NULL
-for(i in 1:length(tag_yr)){
-	count <- sapply(1:length(river_double), function(x) count_tags(riv=river_double[x], yr=tag_yr[i]))
-	ntags[[i]] <- count
+cumulative_counts <- function(countmat){
+	outmat <- t(apply(countmat, 1, cumsum))
+	return(outmat)
 }
-
-ntags_yr <- data.frame("River"=river_double, ntags)
-colnames(ntags_yr) <- c("River", tag_yr)
 
 river_single <- c("S", "K", "A", "C", "Y", "B", "E", "P", "L")
-ndets <- matrix(NA, nrow=length(river_single), ncol=6)
-for(i in 1:length(river_single)){
-	ndets[i,] <- count_dets(riv=river_single[i])
-}
+ntags <- t(sapply(1:length(river_single), function(x) count_tags(river_single[x])))
+rownames(ntags) <- river_single
+colnames(ntags) <- colnames(ch_focal[[1]])
+write.csv(ntags, "count_tags.csv")
+
+#### count detections
+ndets <- t(sapply(1:length(river_single), function(x) count_dets(river_single[x])))
 rownames(ndets) <- river_single
-colnames(ndets) <- c("Yr1", "Yr2", "Yr3", "Yr4", "Yr5", "Yr6")
+colnames(ndets) <- colnames(ch_focal[[1]])
+ndets_real <- ndets - ntags
+write.csv(ndets_real, "count_detections.csv")
+
+par(mfrow=c(3,3), mar=c(0,0,0,0), omi=c(1,1,1,1))
+for(i in 1:length(river_single)){
+	barplot(ntags[i,], xlim=c(0, ncol(ch_focal[[1]])), ylim=c(0, max(ndets)*1.2),
+		xaxs="i", yaxs="i", xaxt="n", yaxt="n")
+	lines(ndets[i,], lwd=3)	
+}
+
+cum_tags <- cumulative_counts(ntags)
+cum_dets <- cumulative_counts(ndets)
+
+prop <- ndets_real/cum_tags
+prop[which(is.na(prop))] <- NA
+write.csv(prop, "proportion_detected.csv")
+
+
+par(mfrow=c(3,3), mar=c(0,0,0,0), omi=c(1,1,1,1))
+for(i in 1:length(river_single)){
+	barplot(cum_tags[i,], xlim=c(0, ncol(ch_focal[[1]])), ylim=c(0, max(cum_dets)),
+		xaxs="i", yaxs="i", xaxt="n", yaxt="n")
+	lines(cum_dets[i,], lwd=3)	
+	mtext(side=3, line=-2, river_single[i])
+}
+
+
+
 
 ## check assumptions
 ## check assumption that fish do not move between river drainages in each season
