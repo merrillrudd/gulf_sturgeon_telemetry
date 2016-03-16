@@ -1,6 +1,6 @@
 ## MBR Dec 2015
 
-compile_transmitters <- function(data_dir, include_NRDA=TRUE, adults=TRUE){
+compile_transmitters <- function(data_dir, include_NRDA=TRUE, adults=TRUE, total=FALSEf){
 
 #### September 2012 - Updated list of transmitters entered in all rivers during cooperative tagging program from Ivy Baremore
   ### WITH MONTH, LENGTH, WEIGHT, LATITUDE, AND LONGITUDE, ANIMAL ID, AND SEX INFORMATION
@@ -39,7 +39,10 @@ NRDAdf <- NRDAdf_fl[which(NRDAdf_fl$FL >= 125),]
 NRDAdf_juv <- NRDAdf_fl[which(NRDAdf_fl$FL < 125),]
 
 if(include_NRDA==TRUE){
-  if(adults==TRUE) tags_df_bind <- rbind.data.frame(NOAAdf, NRDAdf)
+  if(adults==TRUE){
+    if(total==FALSE) tags_df_bind <- rbind.data.frame(NOAAdf, NRDAdf)
+    if(total==TRUE)   tags_df_bind <- rbind.data.frame(NOAAdf, NOAAdf_juv, NRDAdf, NRDAdf_juv)
+  }
   if(adults==FALSE) tags_df_bind <- rbind.data.frame(NOAAdf_juv, NRDAdf_juv)
 
   find_dup_all <- find_sing_all <- data.frame("Transmitter"=as.numeric(), "River"=as.character(), "Date"=as.character(), "FL"=as.numeric(), "List"=as.numeric())
@@ -54,8 +57,14 @@ if(include_NRDA==TRUE){
   if(nrow(find_sing_all)!=length(unique(find_sing_all$Transmitter))) stop("Multiple lengths likely associated with same tagged fish")
 
   if(adults==TRUE){
-  	if(nrow(find_dup_all)>0) write.csv(find_dup_all, file.path(data_dir, "transmitter_conflicts.csv"), row.names=FALSE)
-  	if(nrow(find_dup_all)==0 & file.exists(file.path(data_dir, "transmitter_conflicts.csv"))) unlink(file.path(data_dir, "transmitter_conflicts.csv"), TRUE)
+    if(total==FALSE){
+    	if(nrow(find_dup_all)>0) write.csv(find_dup_all, file.path(data_dir, "transmitter_conflicts.csv"), row.names=FALSE)
+    	if(nrow(find_dup_all)==0 & file.exists(file.path(data_dir, "transmitter_conflicts.csv"))) unlink(file.path(data_dir, "transmitter_conflicts.csv"), TRUE)
+    }
+    if(total==TRUE){
+      if(nrow(find_dup_all)>0) write.csv(find_dup_all, file.path(data_dir, "transmitter_conflicts_combined.csv"), row.names=FALSE)
+      if(nrow(find_dup_all)==0 & file.exists(file.path(data_dir, "transmitter_conflicts_combined.csv"))) unlink(file.path(data_dir, "transmitter_conflicts.csv"), TRUE)
+    }
   }
   if(adults==FALSE){
   	if(nrow(find_dup_all)>0) write.csv(find_dup_all, file.path(data_dir, "juvenile_transmitter_conflicts.csv"), row.names=FALSE)
