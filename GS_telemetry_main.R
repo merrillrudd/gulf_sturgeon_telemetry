@@ -44,17 +44,20 @@ region_results <- readRDS(file.path(reg_res_dir, "results_compiled_S.group_p.str
 riv_res_dir <- file.path(res_dir, "river_collapse")
 
 ## data frame of transmitter numbers deployed in each river by date
-# tags_wNRDA <- compile_transmitters(data_csv_dir, include_NRDA=TRUE)
-# tags_noNRDA <- compile_transmitters(data_csv_dir, include_NRDA=FALSE)
+tags_wNRDA <- compile_transmitters(data_csv_dir, include_NRDA=TRUE)
+tags_noNRDA <- compile_transmitters(data_csv_dir, include_NRDA=FALSE)
+tags_all <- compile_transmitters(data_csv_dir, include_NRDA=TRUE, adults=TRUE, total=TRUE)
 # tags_juv <- compile_transmitters(data_csv_dir, adults=FALSE)
 # saveRDS(tags_wNRDA, file.path(data_comp_dir, "tags_withNRDA.rds"))
 # saveRDS(tags_noNRDA, file.path(data_comp_dir, "tags_noNRDA.rds"))
 # saveRDS(tags_juv, file.path(data_comp_dir, "tags_juv.rds"))
+write.csv(as.matrix(tags_all), file.path(data_comp_dir, "all_transmitters.csv"), row.names=FALSE)
 tags <- readRDS(file.path(data_comp_dir, "tags_withNRDA.rds"))
 
 ## data frame of detections from each receiver
-# detections <- compile_detections(data_csv_dir)
+detections <- compile_detections(data_csv_dir)
 # saveRDS(detections, file.path(data_comp_dir, "detections.rds"))
+# write.csv(detections, file.path(data_comp_dir, "detections.csv"))
 detections <- readRDS(file.path(data_comp_dir, "detections.rds"))
 
 ## at least 3 detections in 1 month per transmitter/receiver combination
@@ -63,9 +66,14 @@ detections <- readRDS(file.path(data_comp_dir, "detections.rds"))
 filtered <- readRDS(file.path(data_comp_dir, "filtered_detections.rds"))
 
 ## find detections that were Gulf sturgeon based on transmitters deployed
-# GSdets <- find_GS(detections=filtered, transmitters=tags)
+GSdets <- find_GS(detections=filtered, transmitters=tags)
+# GS_alldets <- find_GS(detections=filtered, transmitters=tags_all)
+    # trans_det <- unique(GSdets$Transmitter)
+    # write.csv(trans_det, file.path(data_comp_dir, "transmitters_detected.csv"), row.names=FALSE)
+# write.csv(GS_alldets, file.path(data_comp_dir, "all_GS_detections_filtered.csv"))
 # saveRDS(GSdets, file.path(data_comp_dir, "filtered_GSdets.rds"))
 GSdets <- readRDS(file.path(data_comp_dir, "filtered_GSdets.rds"))
+
 
 ## setup capture histories
 # caphist <- setup_capture_histories(data=GSdets, tags=tags)
