@@ -1,6 +1,6 @@
 ## MBR Dec 2015
 
-compile_transmitters <- function(data_dir, include_NRDA=TRUE, adults=TRUE, total=FALSEf){
+compile_transmitters <- function(data_dir, include_NRDA=TRUE, adults=TRUE, total=FALSE){
 
 #### September 2012 - Updated list of transmitters entered in all rivers during cooperative tagging program from Ivy Baremore
   ### WITH MONTH, LENGTH, WEIGHT, LATITUDE, AND LONGITUDE, ANIMAL ID, AND SEX INFORMATION

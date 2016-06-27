@@ -47,23 +47,39 @@ riv_res_dir <- file.path(res_dir, "river_collapse")
 tags_wNRDA <- compile_transmitters(data_csv_dir, include_NRDA=TRUE)
 tags_noNRDA <- compile_transmitters(data_csv_dir, include_NRDA=FALSE)
 tags_all <- compile_transmitters(data_csv_dir, include_NRDA=TRUE, adults=TRUE, total=TRUE)
-# tags_juv <- compile_transmitters(data_csv_dir, adults=FALSE)
-# saveRDS(tags_wNRDA, file.path(data_comp_dir, "tags_withNRDA.rds"))
-# saveRDS(tags_noNRDA, file.path(data_comp_dir, "tags_noNRDA.rds"))
-# saveRDS(tags_juv, file.path(data_comp_dir, "tags_juv.rds"))
+tags_juv <- compile_transmitters(data_csv_dir, adults=FALSE)
+saveRDS(tags_wNRDA, file.path(data_comp_dir, "tags_withNRDA.rds"))
+saveRDS(tags_noNRDA, file.path(data_comp_dir, "tags_noNRDA.rds"))
+saveRDS(tags_juv, file.path(data_comp_dir, "tags_juv.rds"))
 write.csv(as.matrix(tags_all), file.path(data_comp_dir, "all_transmitters.csv"), row.names=FALSE)
 tags <- readRDS(file.path(data_comp_dir, "tags_withNRDA.rds"))
 
 ## data frame of detections from each receiver
 detections <- compile_detections(data_csv_dir)
-# saveRDS(detections, file.path(data_comp_dir, "detections.rds"))
-# write.csv(detections, file.path(data_comp_dir, "detections.csv"))
+saveRDS(detections, file.path(data_comp_dir, "detections.rds"))
+write.csv(detections, file.path(data_comp_dir, "detections.csv"))
 detections <- readRDS(file.path(data_comp_dir, "detections.rds"))
+
 
 ## at least 3 detections in 1 month per transmitter/receiver combination
 # filtered <- filter_detections(detections)
 # saveRDS(filtered, file.path(data_comp_dir, "filtered_detections.rds"))
 filtered <- readRDS(file.path(data_comp_dir, "filtered_detections.rds"))
+# write.csv(filtered, file.path(data_comp_dir, "filtered_detections.csv"))
+	rivers <- unique(filtered$River)
+	find_max <- function(label, data){
+		xx <- data[which(data[,label]==max(data[,label])),]
+		return(xx)
+	}
+
+	final_det <- list()
+	for(rr in 1:length(rivers)){
+		sub <- filtered[which(filtered$River==rivers[rr]),]
+		subyr <- find_max(label="Year", data=sub)
+		submo <- find_max(label="Month", data=subyr)
+		subday <- find_max(label="Day", data=submo)
+		final_det[[rivers[[rr]]]] <- as.data.frame(subday[1,])
+	}
 
 ## find detections that were Gulf sturgeon based on transmitters deployed
 GSdets <- find_GS(detections=filtered, transmitters=tags)
