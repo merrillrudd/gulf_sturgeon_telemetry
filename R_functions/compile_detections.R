@@ -1,4 +1,7 @@
-## MBR Dec 2015
+## Author: Merrill Rudd (merrillrudd@gmail.com)
+## Date: February 2017
+## 
+## Reads raw list of detections
 
 compile_detections <- function(data_dir){
 

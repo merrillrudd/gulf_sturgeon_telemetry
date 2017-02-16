@@ -1,3 +1,9 @@
+## Author: Merrill Rudd (merrillrudd@gmail.com)
+## Date: February 2017
+## 
+## calculate AIC to compare models
+
+
 get_AIC <- function(output_list){
 
 	mat <- matrix(NA, nrow=length(output_list), ncol=2)

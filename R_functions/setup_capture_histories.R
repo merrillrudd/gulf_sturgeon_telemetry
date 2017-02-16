@@ -1,3 +1,9 @@
+## Author: Merrill Rudd (merrillrudd@gmail.com)
+## Date: February 2017
+## 
+## Sets up matrix of capture histories by month for each tag by river system (river=TRUE) or geographic area (river=FALSE) using the detections of Gulf sturgeon and tag IDs
+
+
 setup_capture_histories <- function(detections, tags, river=TRUE){
 
 	year_vec <- as.numeric(unique(c(unique(detections$Year), unique(tags$Year)))[order(unique(c(unique(detections$Year), unique(tags$Year))))])
@@ -13,7 +19,7 @@ setup_capture_histories <- function(detections, tags, river=TRUE){
 	## fill in capture history matrix
 	det_mat <- ch_mat
 
-	river_single <- c("S", "K", "A", "C", "Y", "B", "E", "P", "L")
+	river_single <- c("S", "K", "A", "C", "Y", "E", "P", "L")
 
 	## initialize tag deployment
 	tags$River <- sapply(1:nrow(tags), function(x) assign_riv(tags$System[x]))
@@ -31,6 +37,8 @@ setup_capture_histories <- function(detections, tags, river=TRUE){
 	## check that all tags are deployed
 	check_init <- rowSums(det_mat)
 	if(length(which(check_init==0))!=0) stop("Transmitter not initiated in capture history")
+
+		detections$River[which(detections$River=="B")] <- "Y"
 
 	## match detections to transmitter and date in capture history
 	for(dd in 1:nrow(detections)){

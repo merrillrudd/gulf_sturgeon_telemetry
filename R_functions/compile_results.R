@@ -1,3 +1,9 @@
+## Author: Merrill Rudd (merrillrudd@gmail.com)
+## Date: February 2017
+## 
+## compile results from directory 'dir' based on chosen model, and specify geographic method
+
+
 compile_results <- function(dir, spatial_collapse, model){
 
 	if(spatial_collapse=="river"){
@@ -6,7 +12,7 @@ compile_results <- function(dir, spatial_collapse, model){
 
     	output <- (list.files(dir))[grep("output", list.files(dir))]
     	out_names <- sapply(1:length(output), function(x) unlist(strsplit(output[x], "_"))[1])
-    	river_single <- c("S", "K", "A", "C", "Y", "B", "E", "P", "L")    
+    	river_single <- c("S", "K", "A", "C", "Y", "E", "P", "L")    
 
     	allres <- lapply(1:length(output), function(x) readRDS(file.path(dir, output[x])))
     	names(allres) <- out_names    

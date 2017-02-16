@@ -1,14 +1,23 @@
-## MBR Dec 2015
+## Author: Merrill Rudd (merrillrudd@gmail.com)
+## Date: February 2017
+## 
+## Reads raw list of fish with transmitters, filters down to unique tag list, writes new filtered list to the compiled/adjusted directory, also writes file without juveniles
 
-compile_transmitters <- function(data_dir, juveniles=TRUE){
+compile_transmitters <- function(raw_dir, adj_dir){
 
-## juveniles less than 1250 mm
-tags <- read.csv(file.path(data_dir, "master_list_of_telemetered_fish_sept_2016.csv"), stringsAsFactors=FALSE)
+## csv file with System, Subsystem, Date, vTagID, vSerial, TL_mm, FL_mm, PIT_Tag, and Internal
+tags <- read.csv(file.path(raw_dir, "master_list_of_telemetered_fish_sept_2016.csv"), stringsAsFactors=FALSE)
 
+## find unique tags
 dtags <- dplyr::distinct(tags, vTagID, Date, System, FL_mm)
+
+## get dates in correct format
 dtags$asDate <- sapply(1:nrow(dtags), function(x) as.character(as.Date(dtags$Date[x], format='%m/%d/%Y')))
 
+## unique transmitters
 trans <- unique(dtags$vTagID)
+
+## find the first instance of each transmitter in the list
 filter_first <- NULL
 for(i in 1:length(trans)){
   index <- which(dtags$vTagID==trans[i])
@@ -26,14 +35,13 @@ for(i in 1:length(trans)){
   }
 }
 
+## put the tags in order of their first tag date
 dtags2 <- filter_first[order(filter_first$asDate),]
 
-write.csv(dtags2, file.path(data_dir, "Master_tags_first_obs_sept_2016.csv"), row.names=FALSE)
-
-if(juveniles==TRUE) return(dtags2)
-if(juveniles==FALSE) return(dtags2[which(dtags2$FL_mm >= 1250),])
+## write this file into the directory with adjustments
+write.csv(dtags2, file.path(adj_dir, "Master_tags_first_obs_sept_2016.csv"), row.names=FALSE)
+## without juveniles less than 1250 mm
+write.csv(dtags2[which(dtags2$FL_mm >= 1250),], file.path(adj_dir, "No_juv_Master_tags_first_obs_sept_2016.csv"), row.names=FALSE)
 
 return(dtags2)
-
-
 }

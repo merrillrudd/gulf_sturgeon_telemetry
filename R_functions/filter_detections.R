@@ -1,3 +1,8 @@
+## Author: Merrill Rudd (merrillrudd@gmail.com)
+## Date: February 2017
+## 
+## Filters through list of detections to make sure there are at least 3 within one month - not just noise
+
 filter_detections <- function(detect){
 ##### ------------------------------- FILTER DETECTIONS -------------------------------------------------- ###
 

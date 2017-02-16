@@ -1,3 +1,8 @@
+## Author: Merrill Rudd (merrillrudd@gmail.com)
+## Date: February 2017
+## 
+## Convert to marine environment in the winter months, and option to set to river or geographic region, or focused around a single river or geograhpic region
+
 convert_states <- function(ch, focal=NULL, tags=NULL, spatial_collapse){
 
 	convert_ch <- matrix(NA, nrow=nrow(ch), ncol=ncol(ch))

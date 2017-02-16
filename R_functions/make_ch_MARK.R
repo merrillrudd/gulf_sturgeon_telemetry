@@ -1,3 +1,8 @@
+## Author: Merrill Rudd (merrillrudd@gmail.com)
+## Date: February 2017
+## 
+## put in correct format for RMark
+
 make_ch_MARK <- function(ch, tags, spatial_collapse){
 
 	if(spatial_collapse=="region"){

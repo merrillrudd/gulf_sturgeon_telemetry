@@ -1,3 +1,5 @@
+### check if there is movement between river drainages within a year
+
 check_movement <- function(data){
 	
 #### Check model assumption: Fish do not swim between rivermouths within 1 month -- validate monthly timestep

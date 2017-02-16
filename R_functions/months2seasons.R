@@ -1,3 +1,8 @@
+## Author: Merrill Rudd (merrillrudd@gmail.com)
+## Date: February 2017
+## 
+## Converts monthly capture history to seasons (could be 4 or 2)
+
 months2seasons <- function(ch, num_seasons, river=TRUE){
 
 	## setup capture history based on 4 seasons per year

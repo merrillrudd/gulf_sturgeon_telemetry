@@ -1,3 +1,8 @@
+## Author: Merrill Rudd (merrillrudd@gmail.com)
+## Date: February 2017
+## 
+## Assign letter in place of name of river
+
 assign_riv <- function(name){
   code <- NA
   if(grepl("Suwannee", name)) code <- "S"
@@ -9,7 +14,7 @@ assign_riv <- function(name){
   if(grepl("East", name)) code <- "A"
   if(grepl("Choctawhatchee", name)) code <- "C"
   if(grepl("Escambia", name)) code <- "E"
-  if(grepl("Blackwater", name)) code <- "B"
+  if(grepl("Blackwater", name)) code <- "Y"
   if(grepl("Yellow", name)) code <- "Y"
   if(grepl("Pascagoula", name)) code <- "P"
   if(grepl("Pearl", name)) code <- "L"

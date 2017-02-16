@@ -1,3 +1,8 @@
+## Author: Merrill Rudd (merrillrudd@gmail.com)
+## Date: February 2017
+## 
+## input required files for RMark and run depending on river or regional method
+
 run_model <- function(process, det_ddl, model, spatial_collapse){
 
 		res <- mark(process, det_ddl, model.parameters=list(S=get(model$S), p=get(model$p), Psi=get(model$Psi)), threads=-1)
