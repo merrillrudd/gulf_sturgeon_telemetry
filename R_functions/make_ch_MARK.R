@@ -6,7 +6,7 @@
 make_ch_MARK <- function(ch, tags, spatial_collapse){
 
 	if(spatial_collapse=="region"){
-		reg_code <- c("A", "A", "A", "B", "C", "C", "C", "D", "D")
+		reg_code <- c("A", "A", "B", "B", "C", "D", "D", "D")
 
 		tags$River <- sapply(1:nrow(tags), function(x) assign_riv(tags$System[x]))
 

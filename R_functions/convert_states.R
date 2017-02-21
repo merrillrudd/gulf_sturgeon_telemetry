@@ -38,10 +38,10 @@ convert_states <- function(ch, focal=NULL, tags=NULL, spatial_collapse){
 		col[which(col=="P")] <- 4
 		col[which(col=="L")] <- 4
 
-		col[which(col==1)] <- "A"
-		col[which(col==2)] <- "B"
-		col[which(col==3)] <- "C"
-		col[which(col==4)] <- "D"
+		col[which(col==1)] <- "D"
+		col[which(col==2)] <- "C"
+		col[which(col==3)] <- "B"
+		col[which(col==4)] <- "A"
 
 		return(col)
 	}
