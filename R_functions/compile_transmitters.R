@@ -3,7 +3,7 @@
 ## 
 ## Reads raw list of fish with transmitters, filters down to unique tag list, writes new filtered list to the compiled/adjusted directory, also writes file without juveniles
 
-compile_transmitters <- function(raw_dir, adj_dir, juveniles=FALSE){
+compile_transmitters <- function(raw_dir, adj_dir, adults=TRUE, juveniles=FALSE){
 
 ## csv file with System, Subsystem, Date, vTagID, vSerial, TL_mm, FL_mm, PIT_Tag, and Internal
 tags <- read.csv(file.path(raw_dir, "master_list_of_telemetered_fish_sept_2016.csv"), stringsAsFactors=FALSE)
@@ -43,8 +43,9 @@ write.csv(dtags2, file.path(adj_dir, "Master_tags_first_obs_sept_2016.csv"), row
 ## without juveniles less than 1250 mm
 write.csv(dtags2[which(dtags2$FL_mm >= 1250),], file.path(adj_dir, "No_juv_Master_tags_first_obs_sept_2016.csv"), row.names=FALSE)
 
-if(juveniles==TRUE) transmitters <- dtags2
-if(juveniles==FALSE) transmitters <- dtags2[which(dtags2$FL_mm >= 1250),]
+if(juveniles==TRUE  & adults==TRUE) transmitters <- dtags2
+if(juveniles==FALSE & adults==TRUE) transmitters <- dtags2[which(dtags2$FL_mm >= 1250),]
+if(juveniles==TRUE & adults==FALSE) transmitters <- dtags2[which(dtags2$FL_mm < 1250),]
 
 transmitters$Year <- sapply(1:nrow(transmitters), function(x) strsplit(transmitters$asDate[x], "-")[[1]][1])
 transmitters$Month <- sapply(1:nrow(transmitters), function(x) strsplit(transmitters$asDate[x], "-")[[1]][2])
