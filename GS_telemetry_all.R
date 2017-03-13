@@ -57,7 +57,7 @@ fig_dir <- file.path(out_dir, "figures")
 ### transmitters
 ###############################################
 
-exclude_trans <- c(1540, 1730, 2000, 1660, 1740, 1650, 2150, 1860, 1610, 1990, 1630)
+exclude_trans <- c(56351, 62675, 62676, 62669, 62667, 62263, 56347, 62662, 48400, 62673, 62672, 62671)
 transmitters <- compile_transmitters(raw_dir=data_raw_dir, adj_dir=inputs_csv, adults=TRUE, juveniles=TRUE, exclude=exclude_trans)
 
 ## save my version of the transmitter list

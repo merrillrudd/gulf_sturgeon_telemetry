@@ -38,11 +38,6 @@ for(i in 1:length(trans)){
 ## put the tags in order of their first tag date
 dtags2 <- filter_first[order(filter_first$asDate),]
 
-## write this file into the directory with adjustments
-write.csv(dtags2, file.path(adj_dir, "Master_tags_first_obs_sept_2016.csv"), row.names=FALSE)
-## without juveniles less than 1250 mm
-write.csv(dtags2[which(dtags2$FL_mm >= 1250),], file.path(adj_dir, "No_juv_Master_tags_first_obs_sept_2016.csv"), row.names=FALSE)
-
 if(juveniles==TRUE  & adults==TRUE) transmitters <- dtags2
 if(juveniles==FALSE & adults==TRUE) transmitters <- dtags2[which(dtags2$FL_mm >= 1250),]
 if(juveniles==TRUE & adults==FALSE) transmitters <- dtags2[which(dtags2$FL_mm < 1250),]
@@ -56,5 +51,5 @@ if(all(is.null(exclude))==FALSE){
   if(length(rm_index)>0) transmitters <- transmitters[-c(rm_index),]
 }
 
-return(transmitters)
+  return(transmitters)
 }
